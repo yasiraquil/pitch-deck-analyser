@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pitch Matcher - Find Your Perfect Match</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 150px;
+            font-size: 16px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        .influencer-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background: white;
+        }
+        .influencer-card h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .match-score {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        .loading:after {
+            content: '.';
+            animation: dots 1s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pitch Matcher</h1>
+        <form id="pitchForm">
+            <div class="form-group">
+                <label for="pitch">Your Pitch:</label>
+                <textarea id="pitch" name="pitch" required placeholder="Enter your startup pitch here..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="influencerType">Target Influencer Type:</label>
+                <select id="influencerType" name="influencerType" required>
+                    <option value="">Select an influencer type</option>
+                    <option value="tech">Tech Investor</option>
+                    <option value="health">Healthcare Investor</option>
+                    <option value="fintech">FinTech Investor</option>
+                    <option value="ai">AI/ML Investor</option>
+                    <option value="sustainability">Sustainability Investor</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="submitBtn">Find Matches</button>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="loading" id="loadingIndicator">Finding matches</div>
+        </form>
+        
+        <div id="results" class="result">
+            <h2>Matching Results</h2>
+            <div id="matches"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('pitchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            const resultsDiv = document.getElementById('results');
+            const matchesDiv = document.getElementById('matches');
+            
+            // Reset UI
+            submitBtn.disabled = true;
+            loadingIndicator.style.display = 'block';
+            errorMessage.style.display = 'none';
+            resultsDiv.style.display = 'none';
+            matchesDiv.innerHTML = '';
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('/match-pitch', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    throw new Error(data.error || 'An error occurred while processing your request');
+                }
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const matchesDiv = document.getElementById('matches');
+            
+            resultsDiv.style.display = 'block';
+            matchesDiv.innerHTML = '';
+            
+            if (data.matches && data.matches.length > 0) {
+                data.matches.forEach(match => {
+                    const card = document.createElement('div');
+                    card.className = 'influencer-card';
+                    card.innerHTML = `
+                        <h3>${match.name}</h3>
+                        <p><strong>Match Score:</strong> <span class="match-score">${match.score}%</span></p>
+                        <p><strong>Specialization:</strong> ${match.specialization}</p>
+                        <p><strong>LinkedIn:</strong> <a href="${match.linkedin}" target="_blank">View Profile</a></p>
+                        <p><strong>Suggested Pitch Improvements:</strong></p>
+                        <ul>
+                            ${match.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                        </ul>
+                    `;
+                    matchesDiv.appendChild(card);
+                });
+            } else {
+                matchesDiv.innerHTML = '<p>No matches found. Try adjusting your pitch or selecting a different influencer type.</p>';
+            }
+        }
+    </script>
+</body>
+</html> 

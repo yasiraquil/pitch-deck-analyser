@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import os
 import json
 from werkzeug.utils import secure_filename
 from pypdf import PdfReader
 import utils
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
+import re
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -20,6 +23,56 @@ os.makedirs(app.config['REPORTS_FOLDER'], exist_ok=True)
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'pdf'}
 
+# Sample influencer database (in a real app, this would be a proper database)
+INFLUENCER_DB = {
+    'tech': [
+        {
+            'name': 'John TechInvestor',
+            'linkedin': 'https://www.linkedin.com/in/johntech',
+            'specialization': 'Enterprise Software, Cloud Computing',
+            'keywords': ['saas', 'cloud', 'enterprise', 'software', 'tech', 'startup', 'innovation']
+        },
+        {
+            'name': 'Sarah StartupGuru',
+            'linkedin': 'https://www.linkedin.com/in/sarahstartup',
+            'specialization': 'Early-stage Tech Startups',
+            'keywords': ['startup', 'tech', 'early-stage', 'innovation', 'founder', 'venture']
+        }
+    ],
+    'health': [
+        {
+            'name': 'Dr. HealthInnovator',
+            'linkedin': 'https://www.linkedin.com/in/healthinnovator',
+            'specialization': 'Healthcare Technology',
+            'keywords': ['healthcare', 'medical', 'biotech', 'health', 'medicine', 'patient']
+        }
+    ],
+    'fintech': [
+        {
+            'name': 'Mike FinTechPro',
+            'linkedin': 'https://www.linkedin.com/in/mikefintech',
+            'specialization': 'Financial Technology',
+            'keywords': ['fintech', 'blockchain', 'payments', 'finance', 'banking', 'financial']
+        }
+    ],
+    'ai': [
+        {
+            'name': 'AI Expert',
+            'linkedin': 'https://www.linkedin.com/in/aiexpert',
+            'specialization': 'Artificial Intelligence',
+            'keywords': ['ai', 'machine learning', 'deep learning', 'artificial intelligence', 'ml', 'data']
+        }
+    ],
+    'sustainability': [
+        {
+            'name': 'Eco Investor',
+            'linkedin': 'https://www.linkedin.com/in/ecoinvestor',
+            'specialization': 'Sustainable Technology',
+            'keywords': ['sustainability', 'green tech', 'environment', 'clean energy', 'eco', 'renewable']
+        }
+    ]
+}
+
 # Utility function for templates
 @app.template_filter('now')
 def current_time():
@@ -27,6 +80,64 @@ def current_time():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def analyze_pitch_match(pitch, influencer_type):
+    matches = []
+    processing = utils.HuggingFaceInterface()
+    
+    for influencer in INFLUENCER_DB.get(influencer_type, []):
+        # Calculate match score based on keyword presence
+        keyword_matches = sum(1 for keyword in influencer['keywords'] 
+                            if keyword.lower() in pitch.lower())
+        score = min(100, (keyword_matches / len(influencer['keywords'])) * 100)
+        
+        # Generate personalized suggestions
+        prompt = f"""As an expert pitch advisor, analyze this pitch for {influencer['name']}, 
+        who specializes in {influencer['specialization']}. 
+        The pitch is: {pitch}
+        
+        Provide 3 specific suggestions to improve the pitch for this investor. Make the suggestions actionable and specific."""
+        
+        try:
+            suggestions_text = processing.generate_text(prompt, max_length=500)
+            suggestions = [s.strip() for s in suggestions_text.split('\n') if s.strip()]
+            suggestions = suggestions[:3]  # Take top 3 suggestions
+        except Exception as e:
+            suggestions = [
+                "Focus on the investor's area of expertise",
+                "Highlight relevant market opportunities",
+                "Emphasize scalable aspects of your business"
+            ]
+        
+        matches.append({
+            'name': influencer['name'],
+            'linkedin': influencer['linkedin'],
+            'specialization': influencer['specialization'],
+            'score': round(score, 1),
+            'suggestions': suggestions
+        })
+    
+    # Sort matches by score
+    matches.sort(key=lambda x: x['score'], reverse=True)
+    return matches
+
+@app.route('/pitch-matcher')
+def pitch_matcher():
+    return render_template('pitch_matcher.html')
+
+@app.route('/match-pitch', methods=['POST'])
+def match_pitch():
+    try:
+        pitch = request.form.get('pitch', '')
+        influencer_type = request.form.get('influencerType', '')
+        
+        if not pitch or not influencer_type:
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        matches = analyze_pitch_match(pitch, influencer_type)
+        return jsonify({'matches': matches})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/')
 def index():
