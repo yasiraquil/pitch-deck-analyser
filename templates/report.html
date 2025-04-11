@@ -6,6 +6,8 @@
     <title>{{ title }} - Analysis Report</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Add Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -177,6 +179,7 @@
                             <h5 class="card-title">Report Sections</h5>
                             <nav class="nav flex-column">
                                 <a class="nav-link" href="#overview">Overview</a>
+                                <a class="nav-link" href="#visual-stats">Visual Analysis</a>
                                 <a class="nav-link" href="#detailed-analysis">Detailed Analysis</a>
                                 <a class="nav-link" href="#conclusions">Key Takeaways</a>
                             </nav>
@@ -210,6 +213,70 @@
                         </div>
                         <div class="overview-content" id="formatted-overview">
                             {{ overview | safe }}
+                        </div>
+                    </section>
+                    
+                    <hr class="my-5">
+                    
+                    <!-- Visual Stats Section -->
+                    <section id="visual-stats">
+                        <h2 class="section-title"><i class="fas fa-chart-bar"></i> Visual Analysis</h2>
+                        <div class="badge-section">
+                            <span class="badge bg-primary">Metrics</span>
+                            <span class="badge bg-info">Performance</span>
+                            <span class="badge bg-secondary">Comparison</span>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <!-- Business Model Strength Chart -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Business Model Assessment</h5>
+                                        <canvas id="businessModelChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Market Opportunity Chart -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Market Opportunity Assessment</h5>
+                                        <canvas id="marketOpportunityChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Competitive Position -->
+                            <div class="col-md-12 mb-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Competitive Positioning</h5>
+                                        <canvas id="competitivePositionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Investment Readiness Gauge -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Investment Readiness Score</h5>
+                                        <canvas id="investmentReadinessChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Team Strength Assessment -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Team Strength Assessment</h5>
+                                        <canvas id="teamStrengthChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </section>
                     
@@ -300,10 +367,9 @@
                         
                         if (i + 1 < paragraphs.length) {
                             formattedContent += '<div class="analysis-answer">' + paragraphs[i + 1] + '</div>';
-                            i++; // Skip the answer paragraph in the next iteration
+                            i++; // Skip the next paragraph since we've already included it
                         }
                     } else {
-                        // Regular paragraph
                         formattedContent += '<p>' + paragraphs[i] + '</p>';
                     }
                 }
@@ -317,36 +383,303 @@
                 
                 let content = overviewContent.innerHTML;
                 
-                // Convert paragraphs to points
+                // Highlight keywords
+                const keywords = ['market', 'opportunity', 'growth', 'scalable', 'technology', 'competitive', 
+                               'advantage', 'revenue', 'potential', 'risks', 'challenges', 'team'];
+                
+                keywords.forEach(keyword => {
+                    const regex = new RegExp('\\b(' + keyword + ')\\b', 'gi');
+                    content = content.replace(regex, '<span class="highlight">$1</span>');
+                });
+                
+                // Convert dash points to proper lists
+                content = content.replace(/^- (.*?)$/gm, '<li>$1</li>');
+                content = content.replace(/<li>.*?<\/li>/gs, match => '<ul class="spaced">' + match + '</ul>');
+                
+                // Apply blockquote styling to suitable paragraphs
                 const paragraphs = content.split('\n\n');
                 let formattedContent = '';
                 
-                paragraphs.forEach(paragraph => {
-                    if (paragraph.trim()) {
-                        // Split long paragraphs into bullet points if they don't already start with bullets
-                        if (!paragraph.trim().startsWith('-') && paragraph.length > 200) {
-                            const sentences = paragraph.match(/[^\.!\?]+[\.!\?]+/g) || [paragraph];
-                            let bulletPoints = '';
-                            
-                            sentences.forEach(sentence => {
-                                if (sentence.trim().length > 30) { // Only add substantial sentences
-                                    bulletPoints += `<li>${sentence.trim()}</li>`;
-                                }
-                            });
-                            
-                            if (bulletPoints) {
-                                formattedContent += `<ul class="spaced">${bulletPoints}</ul>`;
-                            } else {
-                                formattedContent += `<p>${paragraph}</p>`;
-                            }
-                        } else {
-                            formattedContent += `<p>${paragraph}</p>`;
-                        }
+                for (let i = 0; i < paragraphs.length; i++) {
+                    if (paragraphs[i].includes('should') || paragraphs[i].includes('recommend') || 
+                        paragraphs[i].includes('suggest') || paragraphs[i].includes('critical') || 
+                        paragraphs[i].includes('important')) {
+                        formattedContent += '<div class="quote">' + paragraphs[i] + '</div>';
+                    } else {
+                        formattedContent += '<p>' + paragraphs[i] + '</p>';
                     }
-                });
+                }
                 
                 overviewContent.innerHTML = formattedContent;
             }
+        });
+        
+        // Initialize visualizations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get metrics data from backend
+            const metrics = {{ metrics|tojson }};
+            
+            // Business Model Chart - Radar Chart
+            const businessModelCtx = document.getElementById('businessModelChart').getContext('2d');
+            const businessModelChart = new Chart(businessModelCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Scalability', 'Market Fit', 'Revenue Model', 'Unit Economics', 'Growth Potential'],
+                    datasets: [{
+                        label: 'Startup',
+                        data: [
+                            metrics.business_model.scalability, 
+                            metrics.business_model.market_fit, 
+                            metrics.business_model.revenue_model, 
+                            metrics.business_model.unit_economics, 
+                            metrics.business_model.growth_potential
+                        ],
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        pointBackgroundColor: 'rgba(79, 70, 229, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(79, 70, 229, 1)'
+                    }, {
+                        label: 'Industry Average',
+                        data: [6, 6, 5, 4, 6],
+                        backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                        borderColor: 'rgba(156, 163, 175, 1)',
+                        pointBackgroundColor: 'rgba(156, 163, 175, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(156, 163, 175, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    }
+                }
+            });
+            
+            // Market Opportunity Chart - Doughnut Chart
+            const marketOpportunityCtx = document.getElementById('marketOpportunityChart').getContext('2d');
+            const marketOpportunityChart = new Chart(marketOpportunityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['TAM', 'SAM', 'SOM'],
+                    datasets: [{
+                        data: [metrics.market.tam, metrics.market.sam, metrics.market.som],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.7)',
+                            'rgba(124, 58, 237, 0.7)',
+                            'rgba(167, 139, 250, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(79, 70, 229, 1)',
+                            'rgba(124, 58, 237, 1)',
+                            'rgba(167, 139, 250, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const labels = ['Total Addressable Market', 'Serviceable Available Market', 'Serviceable Obtainable Market'];
+                                    return labels[context.dataIndex] + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Competitive Positioning - Bubble Chart
+            const competitivePositionCtx = document.getElementById('competitivePositionChart').getContext('2d');
+            
+            // Prepare competitive data
+            const competitorDatasets = [{
+                label: 'Your Startup',
+                data: [{
+                    x: metrics.competition.startup.feature,
+                    y: metrics.competition.startup.ux,
+                    r: metrics.competition.startup.market
+                }],
+                backgroundColor: 'rgba(79, 70, 229, 0.7)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+            }];
+            
+            // Add competitors from metrics
+            const competitorColors = [
+                { bg: 'rgba(220, 38, 38, 0.7)', border: 'rgba(220, 38, 38, 1)' },
+                { bg: 'rgba(16, 185, 129, 0.7)', border: 'rgba(16, 185, 129, 1)' },
+                { bg: 'rgba(245, 158, 11, 0.7)', border: 'rgba(245, 158, 11, 1)' }
+            ];
+            
+            metrics.competition.competitors.forEach((competitor, index) => {
+                competitorDatasets.push({
+                    label: competitor.name,
+                    data: [{
+                        x: competitor.feature,
+                        y: competitor.ux,
+                        r: competitor.market
+                    }],
+                    backgroundColor: competitorColors[index % competitorColors.length].bg,
+                    borderColor: competitorColors[index % competitorColors.length].border,
+                });
+            });
+            
+            const competitivePositionChart = new Chart(competitivePositionCtx, {
+                type: 'bubble',
+                data: {
+                    datasets: competitorDatasets
+                },
+                options: {
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'Feature Richness'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'User Experience'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ' (Feature: ' + context.parsed.x + 
+                                           ', UX: ' + context.parsed.y + 
+                                           ', Market Share: ' + context.parsed.r + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Investment Readiness - Gauge Chart (using doughnut)
+            const investmentReadinessCtx = document.getElementById('investmentReadinessChart').getContext('2d');
+            const investmentReadinessChart = new Chart(investmentReadinessCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ready', 'Needs Work'],
+                    datasets: [{
+                        data: [metrics.readiness, 100 - metrics.readiness],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.8)',
+                            'rgba(229, 231, 235, 0.5)'
+                        ],
+                        borderWidth: 0,
+                        circumference: 180,
+                        rotation: 270
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'centerText',
+                    afterDraw: function(chart) {
+                        const width = chart.width;
+                        const height = chart.height;
+                        const ctx = chart.ctx;
+                        
+                        ctx.restore();
+                        ctx.font = '16px sans-serif';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#333';
+                        
+                        const text = metrics.readiness + '%';
+                        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                        const textY = height - (height / 4);
+                        
+                        ctx.fillText(text, textX, textY);
+                        
+                        ctx.font = '14px sans-serif';
+                        const label = 'Readiness Score';
+                        const labelX = Math.round((width - ctx.measureText(label).width) / 2);
+                        const labelY = height - (height / 6);
+                        
+                        ctx.fillText(label, labelX, labelY);
+                        ctx.save();
+                    }
+                }]
+            });
+            
+            // Team Strength - Horizontal Bar Chart
+            const teamStrengthCtx = document.getElementById('teamStrengthChart').getContext('2d');
+            const teamStrengthChart = new Chart(teamStrengthCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Domain Expertise', 'Technical Skills', 'Previous Startup Experience', 'Leadership', 'Cohesion'],
+                    datasets: [{
+                        label: 'Team Assessment',
+                        data: [
+                            metrics.team.domain_expertise,
+                            metrics.team.technical_skills,
+                            metrics.team.startup_experience,
+                            metrics.team.leadership,
+                            metrics.team.cohesion
+                        ],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.7)',
+                            'rgba(99, 102, 241, 0.7)',
+                            'rgba(129, 140, 248, 0.7)',
+                            'rgba(124, 58, 237, 0.7)',
+                            'rgba(139, 92, 246, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(79, 70, 229, 1)',
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(129, 140, 248, 1)',
+                            'rgba(124, 58, 237, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 10,
+                            ticks: {
+                                stepSize: 2
+                            }
+                        }
+                    }
+                }
+            });
         });
     </script>
 </body>

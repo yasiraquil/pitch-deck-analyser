@@ -1,105 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="w-full h-full m-0 p-0">
 <head>
-    <title>Pitch Matcher - Find Your Perfect Match</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Matcher - Find Your Perfect Investor Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
+        html, body {
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         }
-        .form-group {
-            margin-bottom: 20px;
+        .hero-pattern {
+            background-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        label {
+        .wave-divider {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg);
+        }
+        .wave-divider svg {
+            position: relative;
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #34495e;
+            width: calc(100% + 1.3px);
+            height: 70px;
         }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-height: 150px;
-            font-size: 16px;
+        .wave-divider .shape-fill {
+            fill: #F9FAFB;
         }
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
         }
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
         }
-        button:hover {
-            background-color: #2980b9;
+        .animate-pulse-slow {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
-        .result {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            display: none;
-        }
-        .influencer-card {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            background: white;
-        }
-        .influencer-card h3 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        .match-score {
-            font-weight: bold;
-            color: #27ae60;
-        }
-        .error-message {
-            color: #e74c3c;
-            text-align: center;
-            margin-top: 10px;
-            display: none;
-        }
-        .loading {
-            text-align: center;
-            margin: 20px 0;
-            display: none;
-        }
-        .loading:after {
+        .loading-dots:after {
             content: '.';
-            animation: dots 1s steps(5, end) infinite;
+            animation: dots 1.5s steps(5, end) infinite;
         }
         @keyframes dots {
             0%, 20% { content: '.'; }
@@ -107,108 +70,263 @@
             60% { content: '...'; }
             80%, 100% { content: ''; }
         }
+        .result-card {
+            transition: all 0.3s ease;
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .match-score-high {
+            color: #10B981;
+        }
+        .match-score-medium {
+            color: #F59E0B;
+        }
+        .match-score-low {
+            color: #EF4444;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Pitch Matcher</h1>
-        <form id="pitchForm">
-            <div class="form-group">
-                <label for="pitch">Your Pitch:</label>
-                <textarea id="pitch" name="pitch" required placeholder="Enter your startup pitch here..."></textarea>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="text-2xl font-bold gradient-text">PitchDeck AI</a>
+                </div>
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-indigo-600 mr-4 transition-colors">Home</a>
+                    <a href="{{ url_for('pitch_matcher') }}" class="text-indigo-600 font-medium">Pitch Matcher</a>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="influencerType">Target Influencer Type:</label>
-                <select id="influencerType" name="influencerType" required>
-                    <option value="">Select an influencer type</option>
-                    <option value="tech">Tech Investor</option>
-                    <option value="health">Healthcare Investor</option>
-                    <option value="fintech">FinTech Investor</option>
-                    <option value="ai">AI/ML Investor</option>
-                    <option value="sustainability">Sustainability Investor</option>
-                </select>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden hero-pattern gradient-bg w-full min-h-[300px] flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 relative z-10">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                    Find Your Perfect <span class="text-indigo-200">Investor Match</span>
+                </h1>
+                <p class="mt-4 text-xl text-indigo-100 max-w-2xl mx-auto">
+                    Match your startup pitch with the right investors who specialize in your domain
+                </p>
             </div>
-            
-            <button type="submit" id="submitBtn">Find Matches</button>
-            <div class="error-message" id="errorMessage"></div>
-            <div class="loading" id="loadingIndicator">Finding matches</div>
-        </form>
-        
-        <div id="results" class="result">
-            <h2>Matching Results</h2>
-            <div id="matches"></div>
+        </div>
+        <div class="wave-divider">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
         </div>
     </div>
 
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-20">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 md:p-8">
+                <form id="pitchForm" class="space-y-6">
+                    <div>
+                        <label for="pitch" class="block text-sm font-medium text-gray-700 mb-1">Your Startup Pitch</label>
+                        <textarea 
+                            id="pitch" 
+                            name="pitch" 
+                            rows="5" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 resize-none transition-colors"
+                            placeholder="Describe your startup in detail - what problem you're solving, your target market, business model, and what makes your solution unique..."
+                            required
+                        ></textarea>
+                        <p class="mt-1 text-xs text-gray-500">Be specific about your industry, business model, and target market</p>
+                    </div>
+                    
+                    <div>
+                        <label for="influencerType" class="block text-sm font-medium text-gray-700 mb-1">Target Investor Type</label>
+                        <select 
+                            id="influencerType" 
+                            name="influencerType" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            required
+                        >
+                            <option value="">Select an investor type</option>
+                            <option value="tech">Tech Investor</option>
+                            <option value="health">Healthcare Investor</option>
+                            <option value="fintech">FinTech Investor</option>
+                            <option value="ai">AI/ML Investor</option>
+                            <option value="sustainability">Sustainability Investor</option>
+                            <option value="saas">SaaS Investor</option>
+                            <option value="consumer">Consumer Products Investor</option>
+                            <option value="ecommerce">E-commerce Investor</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <button 
+                            type="submit" 
+                            id="submitBtn"
+                            class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        >
+                            <span id="submitBtnText">Find Investor Matches</span>
+                            <svg id="loadingIcon" class="animate-spin ml-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="errorMessage" class="text-center text-red-500 text-sm hidden"></div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="resultsContainer" class="mt-10 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Your Investor Matches</h2>
+                <span class="text-sm text-gray-500">Based on your pitch profile</span>
+            </div>
+            
+            <div id="matchesContainer" class="space-y-6"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <div class="md:flex md:justify-between">
+                <div class="mb-8 md:mb-0">
+                    <h3 class="text-xl font-semibold mb-4">PitchDeck AI</h3>
+                    <p class="text-gray-300 max-w-md">
+                        AI-powered tools to help startups create investor-ready pitch decks and find the right investors.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('index') }}" class="text-gray-300 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ url_for('pitch_matcher') }}" class="text-gray-300 hover:text-white transition-colors">Pitch Matcher</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                <p>© 2023 PitchDeck AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        document.getElementById('pitchForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
+        document.addEventListener('DOMContentLoaded', function() {
+            const pitchForm = document.getElementById('pitchForm');
             const submitBtn = document.getElementById('submitBtn');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const loadingIcon = document.getElementById('loadingIcon');
             const errorMessage = document.getElementById('errorMessage');
-            const resultsDiv = document.getElementById('results');
-            const matchesDiv = document.getElementById('matches');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const matchesContainer = document.getElementById('matchesContainer');
             
-            // Reset UI
-            submitBtn.disabled = true;
-            loadingIndicator.style.display = 'block';
-            errorMessage.style.display = 'none';
-            resultsDiv.style.display = 'none';
-            matchesDiv.innerHTML = '';
-            
-            const formData = new FormData(e.target);
-            
-            try {
-                const response = await fetch('/match-pitch', {
-                    method: 'POST',
-                    body: formData
-                });
+            pitchForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                const data = await response.json();
+                // Reset UI state
+                errorMessage.classList.add('hidden');
+                submitBtn.disabled = true;
+                submitBtnText.textContent = 'Finding matches';
+                loadingIcon.classList.remove('hidden');
                 
-                if (response.ok) {
-                    displayResults(data);
-                } else {
-                    throw new Error(data.error || 'An error occurred while processing your request');
+                // Get form data
+                const formData = new FormData(pitchForm);
+                
+                try {
+                    const response = await fetch('/match-pitch', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'An error occurred during processing');
+                    }
+                    
+                    // Display results
+                    displayMatches(data);
+                    
+                } catch (error) {
+                    // Show error message
+                    errorMessage.textContent = error.message;
+                    errorMessage.classList.remove('hidden');
+                    resultsContainer.classList.add('hidden');
+                } finally {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtnText.textContent = 'Find Investor Matches';
+                    loadingIcon.classList.add('hidden');
                 }
-            } catch (error) {
-                errorMessage.textContent = error.message;
-                errorMessage.style.display = 'block';
-            } finally {
-                submitBtn.disabled = false;
-                loadingIndicator.style.display = 'none';
+            });
+            
+            function displayMatches(data) {
+                // Clear previous results
+                matchesContainer.innerHTML = '';
+                
+                if (!data.matches || data.matches.length === 0) {
+                    matchesContainer.innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-gray-500">No matching investors found. Try adjusting your pitch description.</p>
+                        </div>
+                    `;
+                } else {
+                    // Create cards for each match
+                    data.matches.forEach(match => {
+                        // Determine score class
+                        let scoreClass = 'match-score-medium';
+                        if (match.score >= 80) {
+                            scoreClass = 'match-score-high';
+                        } else if (match.score < 60) {
+                            scoreClass = 'match-score-low';
+                        }
+                        
+                        const card = document.createElement('div');
+                        card.className = 'result-card bg-white rounded-lg shadow p-6 border border-gray-100';
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900">${match.name}</h3>
+                                    <p class="text-gray-600 mt-1">${match.specialization}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">Match Score</div>
+                                    <div class="text-2xl font-bold ${scoreClass}">${match.score}%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Why this is a good match:</h4>
+                                <p class="text-gray-600 text-sm">${match.reason || 'This investor has expertise in your industry and has a history of investing in similar startups.'}</p>
+                            </div>
+                            
+                            <div class="mt-5 pt-5 border-t border-gray-100 flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <span class="text-sm text-gray-500">Investment Range:</span>
+                                    <span class="ml-2 text-sm font-medium">${match.investmentRange || '$250K - $2M'}</span>
+                                </div>
+                                <a href="${match.linkedin}" target="_blank" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                    <i class="fab fa-linkedin mr-1"></i> LinkedIn Profile
+                                </a>
+                            </div>
+                        `;
+                        
+                        matchesContainer.appendChild(card);
+                    });
+                }
+                
+                // Show results container
+                resultsContainer.classList.remove('hidden');
+                
+                // Smooth scroll to results
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-
-        function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
-            const matchesDiv = document.getElementById('matches');
-            
-            resultsDiv.style.display = 'block';
-            matchesDiv.innerHTML = '';
-            
-            if (data.matches && data.matches.length > 0) {
-                data.matches.forEach(match => {
-                    const card = document.createElement('div');
-                    card.className = 'influencer-card';
-                    card.innerHTML = `
-                        <h3>${match.name}</h3>
-                        <p><strong>Match Score:</strong> <span class="match-score">${match.score}%</span></p>
-                        <p><strong>Specialization:</strong> ${match.specialization}</p>
-                        <p><strong>LinkedIn:</strong> <a href="${match.linkedin}" target="_blank">View Profile</a></p>
-                        <p><strong>Suggested Pitch Improvements:</strong></p>
-                        <ul>
-                            ${match.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
-                        </ul>
-                    `;
-                    matchesDiv.appendChild(card);
-                });
-            } else {
-                matchesDiv.innerHTML = '<p>No matches found. Try adjusting your pitch or selecting a different influencer type.</p>';
-            }
-        }
     </script>
 </body>
 </html> 
