@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #303030;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #505050;
+            margin-bottom: 30px;
+        }
+
+        .upload-container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .drop-zone {
+            border: 2px dashed #666;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-zone:hover {
+            border-color: #2196F3;
+            background-color: #f8f9fa;
+        }
+
+        .drop-zone.highlight {
+            border-color: #2196F3;
+            background-color: #e3f2fd;
+        }
+
+        .drop-zone-text {
+            color: #666;
+        }
+
+        .drop-zone-text small {
+            display: block;
+            margin-top: 8px;
+            color: #999;
+        }
+
+        .file-upload-wrapper {
+            margin: 20px 0;
+        }
+
+        .file-btn-wrapper {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        .file-btn-wrapper:hover {
+            background-color: #1976D2;
+        }
+
+        .file-btn-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .spinner {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message-container {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .message-container.error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        .message-container.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .message-container.info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+        }
+
+        .output-iframe {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            background: white;
+        }
+
+        .download-btn-wrapper {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 10px 0;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        .download-btn-wrapper:hover {
+            background-color: #1976D2;
+        }
+
+        .flashes {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% block body %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

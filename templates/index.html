@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en" class="w-full h-full m-0 p-0">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Deck Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+        .drop-zone {
+            border: 2px dashed #4F46E5;
+            transition: all 0.3s ease;
+        }
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: #6366F1;
+            background-color: rgba(99, 102, 241, 0.05);
+            transform: scale(1.02);
+        }
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: flex;
+        }
+        .analysis-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+        }
+        .hero-pattern {
+            background-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            position: relative;
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .hero-gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 150%, rgba(99, 102, 241, 0.8) 0%, rgba(76, 29, 149, 0.1) 50%);
+            mix-blend-mode: overlay;
+        }
+        .wave-divider {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg);
+        }
+        .wave-divider svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 94px;
+        }
+        .wave-divider .shape-fill {
+            fill: #F9FAFB;
+        }
+        .blob-shape {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            top: -300px;
+            right: -300px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0.3) 100%);
+            border-radius: 43% 57% 70% 30% / 30% 43% 57% 70%;
+            transform: rotate(45deg);
+            z-index: -1;
+            animation: morph 15s linear infinite alternate;
+        }
+        @keyframes morph {
+            0% {
+                border-radius: 43% 57% 70% 30% / 30% 43% 57% 70%;
+            }
+            50% {
+                border-radius: 70% 30% 43% 57% / 57% 70% 30% 43%;
+            }
+            100% {
+                border-radius: 30% 60% 70% 40% / 50% 60% 30% 40%;
+            }
+        }
+        .step-card {
+            position: relative;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .step-number {
+            position: absolute;
+            top: -1.5rem;
+            left: 1.5rem;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #4f46e5;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.5);
+        }
+        .testimonial-card {
+            padding: 2rem;
+            border-radius: 0.5rem;
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 0.5rem;
+            left: 1rem;
+            font-size: 4rem;
+            color: #f3f4f6;
+            font-family: serif;
+            line-height: 1;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 m-0 p-0 w-full">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="text-2xl font-bold gradient-text">PitchDeck AI</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section - Full Width -->
+    <div class="relative overflow-hidden gradient-bg hero-pattern w-full min-h-[600px] flex items-center">
+        <div class="hero-gradient-overlay"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 relative z-10">
+            <div class="md:flex md:items-center md:space-x-12">
+                <div class="md:w-1/2 text-center md:text-left">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                        <span>Transform Your</span>
+                        <span class="block mt-1">Pitch Deck with AI</span>
+                    </h1>
+                    <p class="mt-6 text-xl text-indigo-100 max-w-lg">
+                        Get instant investor-grade feedback on your startup pitch deck and boost your chances of funding success.
+                    </p>
+                    <div class="mt-10">
+                        <a href="#upload-section" class="inline-flex items-center px-8 py-4 border border-transparent text-base font-medium rounded-lg shadow-lg text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 transform hover:-translate-y-1">
+                            Analyze Your Pitch Deck
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="hidden md:block md:w-1/2 mt-10 md:mt-0">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl transform rotate-3 scale-105 opacity-20 blur-xl"></div>
+                        <img class="relative z-10 w-full animate-float rounded-2xl shadow-2xl" src="https://images.unsplash.com/photo-1543286386-713bdd548da4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Pitch deck presentation">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="wave-divider">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <!-- Features Section -->
+        <div class="text-center mb-20 pt-16">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 gradient-text inline-block">
+                What Our AI Analyzes
+            </h2>
+            <div class="h-1 w-24 bg-indigo-500 mx-auto mt-2 rounded-full"></div>
+            <p class="mt-6 max-w-2xl text-xl text-gray-500 mx-auto">
+                Our intelligent system evaluates key aspects of your pitch deck from an investor's perspective.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+                <div class="p-6">
+                    <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-500 transition-colors duration-300">
+                        <span class="text-2xl group-hover:text-white transition-colors duration-300">📈</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Business Model</h3>
+                    <div class="w-10 h-1 bg-indigo-500 rounded mb-4 group-hover:w-full transition-all duration-500"></div>
+                    <p class="text-gray-600">Evaluates scalability and venture-backability of your business model and potential growth trajectory.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+                <div class="p-6">
+                    <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-500 transition-colors duration-300">
+                        <span class="text-2xl group-hover:text-white transition-colors duration-300">🎯</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Market Analysis</h3>
+                    <div class="w-10 h-1 bg-indigo-500 rounded mb-4 group-hover:w-full transition-all duration-500"></div>
+                    <p class="text-gray-600">Assesses market size, growth potential, target audience, and overall market opportunity.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+                <div class="p-6">
+                    <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-500 transition-colors duration-300">
+                        <span class="text-2xl group-hover:text-white transition-colors duration-300">💰</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Funding Stage</h3>
+                    <div class="w-10 h-1 bg-indigo-500 rounded mb-4 group-hover:w-full transition-all duration-500"></div>
+                    <p class="text-gray-600">Determines appropriate funding stage (seed, series A, etc.) based on company maturity and traction.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+                <div class="p-6">
+                    <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-500 transition-colors duration-300">
+                        <span class="text-2xl group-hover:text-white transition-colors duration-300">⚔️</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Competitive Edge</h3>
+                    <div class="w-10 h-1 bg-indigo-500 rounded mb-4 group-hover:w-full transition-all duration-500"></div>
+                    <p class="text-gray-600">Analyzes competitor landscape and identifies your unique advantages in the marketplace.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+                <div class="p-6">
+                    <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-500 transition-colors duration-300">
+                        <span class="text-2xl group-hover:text-white transition-colors duration-300">🔍</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Problem Solution</h3>
+                    <div class="w-10 h-1 bg-indigo-500 rounded mb-4 group-hover:w-full transition-all duration-500"></div>
+                    <p class="text-gray-600">Evaluates the problem you're solving and how effectively your solution addresses market needs.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+                <div class="p-6">
+                    <div class="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-500 transition-colors duration-300">
+                        <span class="text-2xl group-hover:text-white transition-colors duration-300">💸</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Pricing Strategy</h3>
+                    <div class="w-10 h-1 bg-indigo-500 rounded mb-4 group-hover:w-full transition-all duration-500"></div>
+                    <p class="text-gray-600">Reviews your pricing model and revenue generation approach for sustainability and growth.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="relative py-16 bg-gradient-to-b from-gray-50 to-white">
+            <div class="absolute inset-0 bg-indigo-50 opacity-50 skew-y-3 transform -translate-y-16 -z-10"></div>
+            
+            <div class="text-center mb-16 relative z-10">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 gradient-text inline-block">
+                    How It Works
+                </h2>
+                <div class="h-1 w-24 bg-indigo-500 mx-auto mt-2 rounded-full"></div>
+                <p class="mt-6 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Get your pitch deck analyzed in three simple steps
+                </p>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="relative">
+                    <!-- Process connector line -->
+                    <div class="absolute top-1/2 left-0 w-full h-1 bg-indigo-200 transform -translate-y-1/2 hidden md:block"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                        <div class="relative bg-white rounded-xl shadow-xl p-8 transform transition-all duration-300 hover:-translate-y-2">
+                            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg border-4 border-white">1</div>
+                            <div class="pt-8">
+                                <h3 class="text-xl font-semibold text-center text-gray-900 mb-4">Upload Your Pitch Deck</h3>
+                                <div class="flex justify-center mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                </div>
+                                <p class="text-gray-600 text-center">
+                                    Upload your pitch deck PDF (up to 16MB) using our secure platform.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="relative bg-white rounded-xl shadow-xl p-8 transform transition-all duration-300 hover:-translate-y-2 md:mt-8">
+                            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg border-4 border-white">2</div>
+                            <div class="pt-8">
+                                <h3 class="text-xl font-semibold text-center text-gray-900 mb-4">AI Analysis</h3>
+                                <div class="flex justify-center mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                </div>
+                                <p class="text-gray-600 text-center">
+                                    Our AI reviews your pitch deck from an investor's perspective to provide actionable insights.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="relative bg-white rounded-xl shadow-xl p-8 transform transition-all duration-300 hover:-translate-y-2">
+                            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg border-4 border-white">3</div>
+                            <div class="pt-8">
+                                <h3 class="text-xl font-semibold text-center text-gray-900 mb-4">Get Your Report</h3>
+                                <div class="flex justify-center mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <p class="text-gray-600 text-center">
+                                    Receive a comprehensive report with clear insights, recommendations, and analysis.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center mt-12">
+                    <a href="#upload-section" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
+                        Get Started Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="upload-section" class="py-16 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 opacity-70"></div>
+            <div class="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-indigo-100 to-transparent opacity-70"></div>
+            <div class="absolute -left-64 -bottom-64 w-96 h-96 bg-indigo-200 rounded-full opacity-30 blur-3xl"></div>
+            
+            <div class="text-center mb-12 relative z-10">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 gradient-text inline-block">
+                    Start Your Analysis
+                </h2>
+                <div class="h-1 w-24 bg-indigo-500 mx-auto mt-2 rounded-full"></div>
+                <p class="mt-6 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Upload your pitch deck and get instant AI-powered feedback
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto relative z-10">
+                <div class="bg-white rounded-2xl shadow-xl p-8 md:p-10 transform transition-all duration-500 hover:shadow-2xl">
+                    <form class="space-y-8" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                        <div class="drop-zone p-10 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-center cursor-pointer border-2 border-dashed border-indigo-300 group hover:border-indigo-500 transition-all duration-300">
+                            <input type="file" name="file" id="file-upload" class="hidden" accept=".pdf">
+                            <div class="space-y-6">
+                                <div class="flex justify-center">
+                                    <svg class="mx-auto h-20 w-20 text-indigo-400 group-hover:text-indigo-500 transition-colors duration-300" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-900 group-hover:text-indigo-600 transition-colors duration-300">Upload your pitch deck</h3>
+                                    <p class="mt-2 text-gray-500">Drag and drop your file here, or click to browse</p>
+                                    <p class="mt-1 text-sm text-gray-400">Supported formats: PDF (up to 16MB)</p>
+                                </div>
+                                <div id="file-info" class="hidden bg-indigo-50 py-3 px-4 rounded-lg">
+                                    <div class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-sm font-medium text-indigo-600">Selected file: <span id="file-name" class="font-bold"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button type="submit" id="submit-btn" disabled class="w-full flex justify-center py-4 px-6 border border-transparent rounded-xl shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:transform-none">
+                                <span class="flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" id="loading-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Analyze Pitch Deck
+                                </span>
+                            </button>
+                        </div>
+                        
+                        <div class="text-center text-sm text-gray-500 mt-4">
+                            <p>Your pitch deck is analyzed securely and privately</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Testimonials Section -->
+        <div class="mb-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900 gradient-text">
+                    What Founders Say
+                </h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Hear from startup founders who improved their pitch decks with our AI analysis
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="testimonial-card">
+                    <p class="text-gray-600 italic mb-4">
+                        "The AI analysis gave us insights we never considered. Our pitch deck went from good to great, and we secured our seed round within weeks."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span class="text-indigo-800 font-semibold">SL</span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">Sarah L.</p>
+                            <p class="text-xs text-gray-500">Founder, TechStart</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <p class="text-gray-600 italic mb-4">
+                        "The feedback on our pricing model alone was worth it. We restructured our approach based on the AI recommendations and saw immediate interest from investors."
+                    </p>
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span class="text-indigo-800 font-semibold">MJ</span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">Michael J.</p>
+                            <p class="text-xs text-gray-500">CEO, GrowFin</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <p class="text-gray-600 italic mb-4">
+                        "I was skeptical at first, but the competitive analysis provided insights that helped us refine our positioning. Our Series A is now oversubscribed!"
+                    </p>
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span class="text-indigo-800 font-semibold">AT</span>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">Alexis T.</p>
+                            <p class="text-xs text-gray-500">Founder, NeoHealth</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Previous Reports Section -->
+        {% if reports %}
+        <div class="mt-20">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-extrabold text-gray-900 gradient-text">
+                    Previous Reports
+                </h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                    Access your previously analyzed pitch decks
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for report in reports %}
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-gray-900">{{ report }}</h3>
+                        <p class="mt-2 text-sm text-gray-500">Pitch deck analysis report</p>
+                        <div class="mt-4">
+                            <a href="{{ url_for('view_report', report_name=report) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                View Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Pitch Deck Analyzer</h3>
+                    <p class="text-gray-300">
+                        AI-powered analysis to help startups create investor-ready pitch decks.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Features</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li>Business model analysis</li>
+                        <li>Market opportunity assessment</li>
+                        <li>Investor perspective feedback</li>
+                        <li>Competitive landscape review</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Contact</h3>
+                    <p class="text-gray-300">
+                        Questions or feedback? Reach out to us at:
+                        <br>
+                        <a href="mailto:support@pitchdeckai.com" class="text-indigo-300 hover:text-indigo-200">
+                            support@pitchdeckai.com
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                <p>© 2023 Pitch Deck Analyzer. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const dropZone = document.querySelector('.drop-zone');
+        const fileInput = document.getElementById('file-upload');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const submitBtn = document.getElementById('submit-btn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('drag-over');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('drag-over');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+                    fileInfo.classList.remove('hidden');
+                    fileName.textContent = file.name;
+                    submitBtn.disabled = false;
+                } else {
+                    alert('Please upload a PDF file');
+                    fileInput.value = '';
+                }
+            }
+        }
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            loadingSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

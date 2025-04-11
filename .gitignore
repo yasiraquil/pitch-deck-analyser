@@ -1,0 +1,13 @@
+.venv/
+.history/
+temp_uploads/
+.conda/
+*.pyc
+__pycache__/
+cincy_tech.ipynb
+pitch_decks/
+responses/
+nltk_data/
+app.yaml
+pitch_deck_analyzer.py
+.env

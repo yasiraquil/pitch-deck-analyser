@@ -1,0 +1,155 @@
+body {
+    margin: 0;
+    font-size: large;
+    font-family: 'Gill Sans';
+    background-color: #f0f0f0;
+    text-align: center;
+    color:#1a1a1a
+}
+
+.h1 {
+    color: #1a1a1a;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.h2 {
+    color: #1a1a1a;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.drop-zone {
+    display: flex;  /* added flex display */
+    align-items: center;  /* center items vertically */
+    justify-content: center;  /* center items horizontally */
+    border: 2px dashed #ccc;
+    padding: 30px;
+    margin: 20px auto;
+    height: 50px;
+    max-width: 300px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+    line-height: 1.5;  /* adjusted line height for better spacing */
+}
+
+.file-btn-wrapper {
+    position: relative;
+    display: inline-block;
+    background-color: #e6e6e6;
+    padding: 5px 10px; /* Increased padding for better visual spacing */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease; /* Added transform for active state */
+    font-weight: 600; /* Slightly bolder text for emphasis */
+    color: #333; /* Darker text for better readability */
+}
+
+/* Hover state for visual feedback */
+.file-btn-wrapper:hover {
+    background-color: #d4d4d4; /* Slightly darker shade on hover */
+}
+
+/* Active state for visual feedback */
+.file-btn-wrapper:active {
+    transform: scale(0.95); /* Slightly scaled down when pressed */
+}
+
+/* Focus state for accessibility */
+.file-btn-wrapper:focus {
+    outline: none; /* Removing the browser default focus */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5); /* Adding a custom focus ring */
+}
+
+.file-btn-wrapper input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+@keyframes fadeOut {
+    0% {opacity: 1;}
+    100% {opacity: 0;}
+}
+
+.fade-out {
+    animation-name: fadeOut;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+    animation-duration: 1s;
+}
+
+/* Download Button Styling */
+.download-btn-wrapper {
+    display: inline-block;
+    background-color: #e6e6e6;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    font-weight: 600;
+    color: #333;
+    text-decoration: none; /* To remove any underlines from the link */
+    margin-top: 20px;
+    margin-bottom: 20px; /* Adding some bottom margin for spacing */
+}
+
+.download-btn-wrapper:hover {
+    background-color: #d4d4d4;
+}
+
+.download-btn-wrapper:active {
+    transform: scale(0.97);
+    padding: 6px 14px; /* Shrinking the button when pressed */
+}
+
+.download-btn-wrapper:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.5);
+}
+
+
+.output-iframe {
+    display: none; /* Hide the iframe by default */
+    border: none; /* Removing the default border for a cleaner look */
+    background-color: #ffff; /* Giving it a clean white background */
+    height: 450px; 
+    width: 1200px; 
+    margin: 10px 10px; /* Centering the iframe horizontally and providing space around it */
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); /* A subtle shadow for depth */
+    border-radius: 10px; /* Rounded edges for a modern look */
+    overflow: hidden; /* Ensures no overflow from the content */
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none; /* This ensures that the hidden element will not be clickable or interactive */
+    max-height: 0; /* Hide the form/output container by setting its height to 0 */
+    overflow: hidden; /* Ensures any content that overflows the element will be hidden */
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    transition: opacity 0.3s ease, max-height 0.5s, padding 0.5s, margin 0.5s;
+}
+
+.spinner {
+    border: 8px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 8px solid #0a0a0a;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    display: none; /* Initially, it's hidden. */
+    margin: 20px auto; /* To center it horizontally. */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
