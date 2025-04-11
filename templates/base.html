@@ -173,6 +173,11 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+    <div class="flex items-center">
+        <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-indigo-600 mr-4">Home</a>
+        <a href="{{ url_for('pitch_matcher') }}" class="text-gray-600 hover:text-indigo-600 mr-4">Pitch Matcher</a>
+        <a href="{{ url_for('pitch_quality') }}" class="text-gray-600 hover:text-indigo-600">Pitch Quality</a>
+    </div>
     {% block body %}{% endblock %}
     {% block scripts %}{% endblock %}
 </body>

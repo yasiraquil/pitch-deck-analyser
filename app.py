@@ -196,6 +196,10 @@ def upload_file():
             overview = processing.generate_overview(text)
             responses = processing.generate_response(text)
             
+            logger.debug("Evaluating pitch quality")
+            # Generate pitch quality score
+            quality_score = processing.evaluate_pitch_quality(text)
+            
             # Prepare report name
             report_name = os.path.splitext(filename)[0]
             logger.debug(f"Generated report name: {report_name}")
@@ -205,7 +209,8 @@ def upload_file():
             report_data = {
                 'title': report_name,
                 'overview': overview,
-                'responses': responses
+                'responses': responses,
+                'quality_score': quality_score
             }
             
             report_path = os.path.join(app.config['REPORTS_FOLDER'], f"{report_name}.json")
@@ -244,11 +249,15 @@ def view_report(report_name):
     # Generate metrics for visualizations
     metrics = generate_metrics_for_report(report_data)
     
+    # Check if quality_score exists in the report data
+    quality_score = report_data.get('quality_score', None)
+    
     return render_template('report.html', 
                           title=report_data['title'],
                           overview=report_data['overview'],
                           responses=report_data['responses'],
-                          metrics=metrics)
+                          metrics=metrics,
+                          quality_score=quality_score)
 
 def generate_metrics_for_report(report_data):
     """Generate metrics for the visual charts based on report content."""
@@ -321,6 +330,51 @@ def generate_metrics_for_report(report_data):
         metrics['team']['startup_experience'] = 4
     
     return metrics
+
+@app.route('/pitch-quality', methods=['GET', 'POST'])
+def pitch_quality():
+    """Standalone page for evaluating pitch deck quality."""
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            
+            try:
+                # Extract text from PDF
+                reader = PdfReader(file_path)
+                text = ""
+                for page in reader.pages:
+                    text += page.extract_text()
+                
+                # Initialize Hugging Face interface
+                processing = utils.HuggingFaceInterface()
+                
+                # Generate pitch quality score
+                quality_score = processing.evaluate_pitch_quality(text)
+                
+                return render_template('pitch_quality.html', 
+                                    title=filename,
+                                    quality_score=quality_score)
+            
+            except Exception as e:
+                flash(f"Error processing file: {str(e)}")
+                return redirect(url_for('pitch_quality'))
+        
+        flash('Invalid file type. Please upload a PDF file.')
+        return redirect(url_for('pitch_quality'))
+    
+    return render_template('pitch_quality.html')
 
 if __name__ == '__main__':
     logger.info("Starting Flask application")

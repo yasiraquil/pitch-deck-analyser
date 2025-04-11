@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" class="w-full h-full m-0 p-0">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Deck Quality Score - PitchDeck AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Add Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .hero-pattern {
+            background-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .wave-divider {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg);
+        }
+        .wave-divider svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 70px;
+        }
+        .wave-divider .shape-fill {
+            fill: #F9FAFB;
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .score-circle {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(#4f46e5 0% var(--percentage), #e5e7eb var(--percentage) 100%);
+        }
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 50%;
+        }
+        .category-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-bar-fill {
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            border-radius: 4px;
+        }
+        .category-score-excellent .category-bar-fill {
+            background-color: #10B981;
+        }
+        .category-score-good .category-bar-fill {
+            background-color: #3B82F6;
+        }
+        .category-score-average .category-bar-fill {
+            background-color: #F59E0B;
+        }
+        .category-score-poor .category-bar-fill {
+            background-color: #EF4444;
+        }
+        .suggestion-card {
+            border-left: 4px solid #4f46e5;
+            transition: all 0.3s ease;
+        }
+        .suggestion-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="text-2xl font-bold gradient-text">PitchDeck AI</a>
+                </div>
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-indigo-600 mr-4 transition-colors">Home</a>
+                    <a href="{{ url_for('pitch_matcher') }}" class="text-gray-600 hover:text-indigo-600 mr-4 transition-colors">Pitch Matcher</a>
+                    <a href="{{ url_for('pitch_quality') }}" class="text-indigo-600 font-medium">Pitch Quality</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden hero-pattern gradient-bg w-full min-h-[300px] flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 relative z-10">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                    Pitch Deck <span class="text-indigo-200">Quality Score</span>
+                </h1>
+                <p class="mt-4 text-xl text-indigo-100 max-w-2xl mx-auto">
+                    Get AI-powered feedback on your pitch deck's effectiveness
+                </p>
+            </div>
+        </div>
+        <div class="wave-divider">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-10 relative z-20">
+        {% if quality_score %}
+            <!-- Results Display -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
+                <div class="p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Pitch Deck Quality Assessment</h2>
+                            <p class="text-gray-500 mt-1">{{ title }}</p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <a href="{{ url_for('index') }}" class="text-indigo-600 hover:text-indigo-500 font-medium flex items-center">
+                                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Executive Summary -->
+                    <div class="bg-indigo-50 p-4 rounded-lg mb-8">
+                        <h3 class="text-lg font-semibold text-indigo-900 mb-2">Executive Summary</h3>
+                        <p class="text-indigo-800">{{ quality_score.executive_summary }}</p>
+                    </div>
+
+                    <!-- Overall Score -->
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-10">
+                        <div class="w-full md:w-1/3 flex flex-col items-center mb-6 md:mb-0">
+                            {% set score_color = "#EF4444" %}
+                            {% if quality_score.overall_score >= 80 %}
+                                {% set score_color = "#10B981" %}
+                                {% set score_text = "Excellent" %}
+                            {% elif quality_score.overall_score >= 70 %}
+                                {% set score_color = "#3B82F6" %}
+                                {% set score_text = "Good" %}
+                            {% elif quality_score.overall_score >= 50 %}
+                                {% set score_color = "#F59E0B" %}
+                                {% set score_text = "Average" %}
+                            {% else %}
+                                {% set score_text = "Needs Work" %}
+                            {% endif %}
+                            
+                            <div class="score-circle flex items-center justify-center mb-4" style="--percentage: {{ quality_score.overall_score }}%">
+                                <div class="absolute flex flex-col items-center justify-center">
+                                    <span class="text-4xl font-bold" style="color: {{ score_color }}">{{ quality_score.overall_score }}</span>
+                                    <span class="text-gray-500 text-sm">out of 100</span>
+                                </div>
+                            </div>
+                            <span class="text-lg font-semibold" style="color: {{ score_color }}">{{ score_text }}</span>
+                        </div>
+                        
+                        <div class="w-full md:w-2/3">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h3>
+                            <div class="grid grid-cols-1 gap-y-4">
+                                {% for category, data in quality_score.categories.items() %}
+                                    {% set score = data.score %}
+                                    {% set category_name = category|replace('_', ' ')|title %}
+                                    
+                                    {% set category_class = "category-score-poor" %}
+                                    {% if score >= 80 %}
+                                        {% set category_class = "category-score-excellent" %}
+                                    {% elif score >= 70 %}
+                                        {% set category_class = "category-score-good" %}
+                                    {% elif score >= 50 %}
+                                        {% set category_class = "category-score-average" %}
+                                    {% endif %}
+                                    
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-700">{{ category_name }}</span>
+                                            <span class="text-sm font-medium {{ category_class|replace('-bar-fill', '') }}">{{ score }}/100</span>
+                                        </div>
+                                        <div class="category-bar {{ category_class }}">
+                                            <div class="category-bar-fill" style="width: {{ score }}%"></div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Improvement Areas -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 border-b pb-2">Key Improvement Areas</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                            {% for area in quality_score.improvement_areas %}
+                                <div class="suggestion-card bg-gray-50 p-4 rounded">
+                                    <div class="flex items-start">
+                                        <div class="rounded-full bg-indigo-100 p-2 mr-3">
+                                            <i class="fas fa-lightbulb text-indigo-600"></i>
+                                        </div>
+                                        <p class="text-gray-700 text-sm">{{ area }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Detailed Category Feedback -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 border-b pb-2">Detailed Feedback</h3>
+                        <div class="grid grid-cols-1 gap-6">
+                            {% for category, data in quality_score.categories.items() %}
+                                {% set category_name = category|replace('_', ' ')|title %}
+                                <div class="bg-gray-50 p-5 rounded-lg">
+                                    <h4 class="text-lg font-medium text-gray-900 mb-3">{{ category_name }}</h4>
+                                    <p class="text-gray-700">{{ data.feedback }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Upload Form -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Evaluate Your Pitch Deck</h2>
+                    <form action="{{ url_for('pitch_quality') }}" method="post" enctype="multipart/form-data" class="space-y-6">
+                        <div>
+                            <label for="file" class="block text-sm font-medium text-gray-700 mb-1">Upload Your Pitch Deck</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 transition-colors cursor-pointer">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="file" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                            <span>Upload a PDF file</span>
+                                            <input id="file" name="file" type="file" class="sr-only" accept=".pdf">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PDF up to 10MB</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                Analyze Pitch Deck Quality
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- How It Works Section -->
+            <div class="mt-16">
+                <h2 class="text-2xl font-bold text-center text-gray-900 mb-12">How Our Pitch Deck Scoring Works</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mb-4">
+                            <i class="fas fa-brain text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-3">AI Analysis</h3>
+                        <p class="text-gray-600">Our AI engine analyzes your pitch deck across 8 critical categories that investors care about most.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mb-4">
+                            <i class="fas fa-chart-line text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-3">Detailed Scoring</h3>
+                        <p class="text-gray-600">Each category receives an objective score based on industry standards and best practices.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mb-4">
+                            <i class="fas fa-lightbulb text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-3">Actionable Feedback</h3>
+                        <p class="text-gray-600">Receive specific, actionable suggestions to improve your pitch deck and increase your chances of funding.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scoring Categories Section -->
+            <div class="mt-16">
+                <h2 class="text-2xl font-bold text-center text-gray-900 mb-6">What We Evaluate</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Our AI evaluates your pitch deck across these 8 critical categories that investors focus on</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Value Proposition</h3>
+                        <p class="text-gray-600 text-sm">How clearly you communicate what your startup does and its unique value</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Problem-Solution Fit</h3>
+                        <p class="text-gray-600 text-sm">How well your solution addresses the stated problem</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Market Analysis</h3>
+                        <p class="text-gray-600 text-sm">Quality of market size assessment and target audience definition</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Business Model</h3>
+                        <p class="text-gray-600 text-sm">Clarity and viability of how your business makes money</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Competitive Analysis</h3>
+                        <p class="text-gray-600 text-sm">Understanding of the competitive landscape and your differentiation</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Team Qualifications</h3>
+                        <p class="text-gray-600 text-sm">Strength and relevance of your team's background</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Financial Projections</h3>
+                        <p class="text-gray-600 text-sm">Realism and thoroughness of your financial forecasts</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-lg font-semibold mb-2 text-indigo-700">Visual Design</h3>
+                        <p class="text-gray-600 text-sm">Overall presentation quality and ease of understanding</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+            <div class="md:flex md:justify-between">
+                <div class="mb-8 md:mb-0">
+                    <h3 class="text-xl font-semibold mb-4">PitchDeck AI</h3>
+                    <p class="text-gray-300 max-w-md">
+                        AI-powered tools to help startups create investor-ready pitch decks and find the right investors.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{{ url_for('index') }}" class="text-gray-300 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ url_for('pitch_matcher') }}" class="text-gray-300 hover:text-white transition-colors">Pitch Matcher</a></li>
+                        <li><a href="{{ url_for('pitch_quality') }}" class="text-gray-300 hover:text-white transition-colors">Pitch Quality</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm text-gray-400">
+                <p>© 2023 PitchDeck AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // File upload interactivity
+        const fileInput = document.getElementById('file');
+        if (fileInput) {
+            const uploadContainer = fileInput.closest('.border-dashed');
+            
+            // Show filename when file is selected
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    const fileName = fileInput.files[0].name;
+                    const fileSize = Math.round(fileInput.files[0].size / 1024); // KB
+                    
+                    const fileInfo = document.createElement('div');
+                    fileInfo.className = 'mt-3 text-sm text-indigo-600 font-medium';
+                    fileInfo.innerHTML = `Selected: ${fileName} (${fileSize} KB)`;
+                    
+                    // Remove any existing file info
+                    const existingInfo = uploadContainer.querySelector('.text-indigo-600.font-medium');
+                    if (existingInfo) {
+                        existingInfo.remove();
+                    }
+                    
+                    uploadContainer.appendChild(fileInfo);
+                }
+            });
+            
+            // Highlight when dragging
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadContainer.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadContainer.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                uploadContainer.classList.add('border-indigo-500');
+                uploadContainer.classList.add('bg-indigo-50');
+            }
+
+            function unhighlight(e) {
+                uploadContainer.classList.remove('border-indigo-500');
+                uploadContainer.classList.remove('bg-indigo-50');
+            }
+        }
+    </script>
+</body>
+</html>

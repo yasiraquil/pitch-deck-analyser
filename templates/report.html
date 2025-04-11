@@ -218,6 +218,66 @@
                     
                     <hr class="my-5">
                     
+                    <!-- Quality Score Section (if available) -->
+                    {% if quality_score %}
+                    <div class="mb-10">
+                        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Pitch Quality Score</h2>
+                        <div class="bg-gray-50 p-5 rounded-lg">
+                            <div class="flex flex-col md:flex-row items-center">
+                                <!-- Score Circle -->
+                                <div class="w-full md:w-1/4 flex flex-col items-center mb-6 md:mb-0">
+                                    {% set score_color = "#EF4444" %}
+                                    {% if quality_score.overall_score >= 80 %}
+                                        {% set score_color = "#10B981" %}
+                                        {% set score_text = "Excellent" %}
+                                    {% elif quality_score.overall_score >= 70 %}
+                                        {% set score_color = "#3B82F6" %}
+                                        {% set score_text = "Good" %}
+                                    {% elif quality_score.overall_score >= 50 %}
+                                        {% set score_color = "#F59E0B" %}
+                                        {% set score_text = "Average" %}
+                                    {% else %}
+                                        {% set score_text = "Needs Work" %}
+                                    {% endif %}
+                                    
+                                    <div class="relative w-40 h-40 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center mb-3">
+                                        <div class="w-32 h-32 rounded-full bg-white flex items-center justify-center">
+                                            <div class="text-center">
+                                                <span class="block text-4xl font-bold" style="color: {{ score_color }}">{{ quality_score.overall_score }}</span>
+                                                <span class="text-sm text-gray-500">out of 100</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="text-lg font-medium" style="color: {{ score_color }}">{{ score_text }}</span>
+                                </div>
+                                
+                                <!-- Summary and Actions -->
+                                <div class="w-full md:w-3/4 md:pl-8">
+                                    <div class="mb-4">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Executive Summary</h3>
+                                        <p class="text-gray-700">{{ quality_score.executive_summary }}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Top 3 Improvement Areas</h3>
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            {% for area in quality_score.improvement_areas[:3] %}
+                                                <li class="text-gray-700">{{ area }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <a href="{{ url_for('pitch_quality') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            <i class="fas fa-chart-bar mr-2"></i> View Full Quality Report
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <!-- Visual Stats Section -->
                     <section id="visual-stats">
                         <h2 class="section-title"><i class="fas fa-chart-bar"></i> Visual Analysis</h2>

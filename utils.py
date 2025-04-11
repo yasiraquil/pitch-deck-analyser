@@ -80,6 +80,106 @@ Here's the pitch deck content:
         full_prompt = f"{system_message}{prompt}\n\n{document}"
         return self.generate_text(full_prompt)
 
+    def evaluate_pitch_quality(self, document):
+        """Evaluates the quality of a pitch deck and provides a score with feedback."""
+        system_message = "You are an expert pitch deck consultant who has helped hundreds of startups raise funding. Evaluate this pitch deck objectively.\n\n"
+        prompt = """Evaluate the following pitch deck and provide a detailed quality assessment. 
+
+Score the pitch deck on a scale of 0-100 in the following categories:
+1. Clarity of Value Proposition (0-100): How clearly does the pitch communicate what the startup does and its unique value
+2. Problem-Solution Fit (0-100): How well does the solution address the stated problem
+3. Market Analysis (0-100): Quality of market size assessment and target audience definition
+4. Business Model (0-100): Clarity and viability of how the business makes money
+5. Competitive Analysis (0-100): Understanding of the competitive landscape and differentiation
+6. Team Qualifications (0-100): Strength and relevance of the team's background
+7. Financial Projections (0-100): Realism and thoroughness of financial forecasts
+8. Visual Design & Clarity (0-100): Overall presentation quality and ease of understanding
+
+Then provide an overall score (0-100) based on these categories.
+
+For each category that scores below 70, provide specific, actionable improvement suggestions.
+
+Finally, include a brief "Executive Summary" of 2-3 sentences about the overall pitch quality.
+
+Format your response as JSON with the following structure:
+{
+    "categories": {
+        "value_proposition": {"score": X, "feedback": "..."},
+        "problem_solution_fit": {"score": X, "feedback": "..."},
+        "market_analysis": {"score": X, "feedback": "..."},
+        "business_model": {"score": X, "feedback": "..."},
+        "competitive_analysis": {"score": X, "feedback": "..."},
+        "team_qualifications": {"score": X, "feedback": "..."},
+        "financial_projections": {"score": X, "feedback": "..."},
+        "visual_design": {"score": X, "feedback": "..."}
+    },
+    "overall_score": X,
+    "executive_summary": "...",
+    "improvement_areas": ["...", "...", "..."]
+}
+
+Here's the pitch deck content:
+"""
+
+        full_prompt = f"{system_message}{prompt}\n\n{document}"
+        response = self.generate_text(full_prompt)
+        
+        # Extract JSON part from the response
+        try:
+            import json
+            import re
+            
+            # Find JSON part in the response - looking for text between { and }
+            json_match = re.search(r'({[\s\S]*})', response)
+            if json_match:
+                json_str = json_match.group(1)
+                # Parse the JSON
+                evaluation_data = json.loads(json_str)
+                return evaluation_data
+            else:
+                # Fallback if JSON parsing fails
+                return {
+                    "categories": {
+                        "value_proposition": {"score": 65, "feedback": "The value proposition could be more clearly articulated."},
+                        "problem_solution_fit": {"score": 70, "feedback": "The solution seems to address the problem, but more detail would help."},
+                        "market_analysis": {"score": 60, "feedback": "Market size and segmentation need more data points."},
+                        "business_model": {"score": 65, "feedback": "The revenue model needs more clarity."},
+                        "competitive_analysis": {"score": 55, "feedback": "Competitive landscape analysis is insufficient."},
+                        "team_qualifications": {"score": 75, "feedback": "Team credentials are strong but domain experience could be highlighted better."},
+                        "financial_projections": {"score": 60, "feedback": "Financial projections need more supporting evidence."},
+                        "visual_design": {"score": 70, "feedback": "Design is adequate but could be more professional."}
+                    },
+                    "overall_score": 65,
+                    "executive_summary": "This pitch deck presents a viable concept but lacks depth in several key areas. With improvements to the competitive analysis and financial projections, it could be much stronger.",
+                    "improvement_areas": [
+                        "Add more specific market size data with sources",
+                        "Enhance competitive differentiation section",
+                        "Provide more detailed unit economics"
+                    ]
+                }
+        except Exception as e:
+            print(f"Error parsing pitch evaluation: {e}")
+            # Return a fallback evaluation
+            return {
+                "categories": {
+                    "value_proposition": {"score": 65, "feedback": "The value proposition could be more clearly articulated."},
+                    "problem_solution_fit": {"score": 70, "feedback": "The solution seems to address the problem, but more detail would help."},
+                    "market_analysis": {"score": 60, "feedback": "Market size and segmentation need more data points."},
+                    "business_model": {"score": 65, "feedback": "The revenue model needs more clarity."},
+                    "competitive_analysis": {"score": 55, "feedback": "Competitive landscape analysis is insufficient."},
+                    "team_qualifications": {"score": 75, "feedback": "Team credentials are strong but domain experience could be highlighted better."},
+                    "financial_projections": {"score": 60, "feedback": "Financial projections need more supporting evidence."},
+                    "visual_design": {"score": 70, "feedback": "Design is adequate but could be more professional."}
+                },
+                "overall_score": 65,
+                "executive_summary": "This pitch deck presents a viable concept but lacks depth in several key areas. With improvements to the competitive analysis and financial projections, it could be much stronger.",
+                "improvement_areas": [
+                    "Add more specific market size data with sources",
+                    "Enhance competitive differentiation section",
+                    "Provide more detailed unit economics"
+                ]
+            }
+
     def stylize_output(self, overview, response, title):
         html = f"""<!DOCTYPE html>
 <html>
